@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "locales",
+  "info": {
+    "name": "Locales",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "Menu": {
+      "type": "string"
+    },
+    "Info": {
+      "type": "string"
+    }
+  }
+}
