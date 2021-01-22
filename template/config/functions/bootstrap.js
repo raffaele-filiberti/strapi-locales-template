@@ -1,39 +1,69 @@
 'use strict';
 
-/**
- * An asynchronous bootstrap function that runs before
- * your application gets started.
- *
- * This gives you an opportunity to set up your data model,
- * run jobs, or perform some special logic.
- *
- * See more details here: https://strapi.io/documentation/developer-docs/latest/concepts/configurations.html#bootstrap
- */
+const fs = require("fs");
+
+const languages = {
+  "en": "English",
+  "de": "German",
+  "it": "Italian",
+};
+
+const LOCALE_PATH = '../../data/';
 
 module.exports = async () => {
-  // Required fields:
+  const langParams = process.env.LOCALES || 'en,it'
+
+  await langParams
+    .split(',')
+    .forEach(async code => {
+      const locale = await strapi
+        .query('locale')
+        .findOne({ slug: code });
+
+      const existFolderData = fs.existsSync(LOCALE_PATH);
+
+      const data = existFolderData ? require(LOCALE_PATH + code + '.json') : {};
+
+      if (locale) {
+        console.info("Updating " + languages[code]);
+        await strapi.query('locale').update(
+          {
+            id: locale.id
+          },
+          {
+            name: languages[code],
+            slug: code,
+            ...data
+          })
+      } else {
+        console.info("Generating " + languages[code]);
+        await strapi.query('locale').create({
+          name: languages[code],
+          slug: code,
+          ...data
+        })
+      }
+    });
+
   const params = {
     username: process.env.ADMIN_USER || 'admin',
     password: process.env.ADMIN_PASS || 'admin',
-    email: process.env.ADMIN_EMAIL || 'your.email@company.com',
+    email: process.env.ADMIN_EMAIL || 'admin@company.com',
     blocked: false
   };
 
-  // Check if exist any admin account - NOTE: you can change this query to find by specific email
   const admins = await strapi
-    .query('administrator', 'admin')
+    .query('user', 'admin')
     .find({ _limit: 1 });
 
   if (admins.length) {
-    console.error('You can\'t register a new admin');
+    console.log('Admin user created at first bootstrap');
   } else {
-    // Hash password before storing in the database
     params.password = await strapi.admin.services.auth.hashPassword(params.password);
 
     try {
-      // Create admin account
       const admin = await strapi
-        .query('administrator', 'admin')
+        .query('user', 'admin')
         .create(params);
 
       console.info('(Admin) Account created:', admin);
