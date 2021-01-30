@@ -12,7 +12,7 @@ const DATA_PATH = './data/json';
 
 const isArray = (value) => value && Object.prototype.toString.call(value) === '[object Array]';
 
-const getDataFromPath = (path) => fs.existsSync(path) && require('../.' + path);
+const getDataFromPath = (path) => fs.existsSync(path) ? require('../.' + path) : {};
 
 const getData = (model, code) => getDataFromPath(`${DATA_PATH}/${code}/${model}.json`);
 
@@ -26,29 +26,25 @@ const getLocales = async (langCodes) => Promise.all(
 
     const data = getData('locale', code);
 
-    if (data) {
-      if (locale) {
-        console.info('Updating locale: ' + code);
-        await strapi.query('locale').update(
-          {
-            id: locale.id
-          },
-          {
-            name: languages[code],
-            slug: code,
-            ...data
-          });
-        return locale;
-      } else {
-        console.info('Generating locale:' + code);
-        return await strapi.query('locale').create({
+    if (locale) {
+      console.info('Updating locale: ' + code);
+      await strapi.query('locale').update(
+        {
+          id: locale.id
+        },
+        {
           name: languages[code],
           slug: code,
           ...data
         });
-      }
+      return locale;
     } else {
-      console.info('Missing data for locale: ' + code);
+      console.info('Generating locale:' + code);
+      return await strapi.query('locale').create({
+        name: languages[code],
+        slug: code,
+        ...data
+      });
     }
   }));
 

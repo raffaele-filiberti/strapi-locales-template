@@ -7,6 +7,10 @@
       "build": "strapi build",
       "strapi": "strapi"
     },
+    "devDependencies": {
+      "babel-eslint": "^10.1.0",
+      "eslint": "^7.18.0"
+    },
     "dependencies": {
       "strapi-plugin-graphql": "latest",
       "csvtojson": "^2.0.10",
