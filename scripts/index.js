@@ -170,13 +170,15 @@ const saveByType = {
 };
 
 (async () => {
-  const csvDir = path.resolve(__dirname, 'csv');
-  const jsonDir = path.resolve(__dirname, 'json');
-  const headersDir = path.resolve(__dirname, 'headers');
+  const csvDir = path.resolve(__dirname, '../data/csv');
+  const jsonDir = path.resolve(__dirname, '../data/json');
+  const headersDir = path.resolve(__dirname, '../data/headers');
 
   makeDirIfNotExist(jsonDir);
 
   const files = fs.readdirSync(csvDir).filter(name => name.includes('.csv'));
+
+  console.log(files);
 
   const filenames = files.map(name => name.replace('.csv', ''));
 
