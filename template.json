@@ -1,7 +1,16 @@
 {
   "package": {
+    "scripts": {
+      "csv:json": "node data/index.js locale='it,en'",
+      "develop": "strapi develop",
+      "start": "strapi start",
+      "build": "strapi build",
+      "strapi": "strapi"
+    },
     "dependencies": {
-      "strapi-plugin-graphql": "latest"
+      "strapi-plugin-graphql": "latest",
+      "csvtojson": "^2.0.10",
+      "prompts": "^2.4.0"
     }
   }
 }
