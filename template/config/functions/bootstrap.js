@@ -77,23 +77,23 @@ module.exports = async () => {
             async ({ id }) => strapi.query(modelKey).delete({ id })
           );
 
-          
+
           const promises = globalData.map(async globalEntry => {
             const entryToBeUpdated = entries.find(({ slug }) => slug === globalEntry.slug);
-            
+
             if (entryToBeUpdated) {
               return strapi
                 .query(modelKey)
                 .update({ id: entryToBeUpdated.id }, globalEntry);
             }
-            
+
             return strapi
               .query(modelKey)
               .create(globalEntry);
           });
-          
+
           await Promise.all(deletePromises);
-          
+
           console.info('Generating entries in model ' + modelKey);
           return Promise.all(promises);
         }
@@ -194,5 +194,34 @@ module.exports = async () => {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  let webRole = await strapi
+    .query('role', 'users-permissions')
+    .findOne({ name: "Web" });
+
+  if (!webRole) {
+    console.log('Creating "web" role');
+    webRole = await strapi
+      .query('role', 'users-permissions')
+      .create({ name: "Web" });
+  }
+
+  const webUser = await strapi
+    .query('user', 'users-permissions')
+    .findOne({ username: process.env.WEB_USER_NAME || "web" })
+
+  if (!webUser) {
+    console.log('Creating "web" user');
+    await strapi
+      .query('user', 'users-permissions')
+      .create({
+        username: process.env.WEB_USER_NAME || "web",
+        email: process.env.WEB_USER_EMAIL || "web@strapi.io",
+        password: process.env.WEB_USER_PASSWORD || "web",
+        confirmed: true,
+        blocked: false,
+        role: webRole.id,
+      });
   }
 };

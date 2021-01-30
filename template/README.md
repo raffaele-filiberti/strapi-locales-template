@@ -24,6 +24,3 @@ module.exports = ({ env }) => ({
 });
 ```
 5. Run `yarn develop`
-6. Create Role `website` in Users and Permissions Plugin with read-only capabilities
-7. Create User `web` with role `website`
-8. Now you can login and perform query on your client using JWT Token in request headers
