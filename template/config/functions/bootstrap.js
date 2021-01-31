@@ -67,44 +67,58 @@ module.exports = async () => {
 
       const globalData = getGlobalData(modelKey);
 
-      if (globalData) {
-        if (isArray(globalData)) {
-          const entriesToDelete = entries.filter(
-            ({ slug }) => globalData.find(globalEntry => globalEntry.slug === slug) === undefined
-          );
+      if (isArray(globalData)) {
+        const entriesToDelete = entries.filter(
+          ({ slug }) => globalData.find(globalEntry => globalEntry.slug === slug) === undefined
+        );
 
-          const deletePromises = entriesToDelete.map(
-            async ({ id }) => strapi.query(modelKey).delete({ id })
-          );
+        const deletePromises = entriesToDelete.map(
+          async ({ id }) => strapi.query(modelKey).delete({ id })
+        );
 
 
-          const promises = globalData.map(async globalEntry => {
-            const entryToBeUpdated = entries.find(({ slug }) => slug === globalEntry.slug);
+        const promises = globalData.map(async globalEntry => {
+          const entryToBeUpdated = entries.find(({ slug }) => slug === globalEntry.slug);
 
-            if (entryToBeUpdated) {
-              return strapi
-                .query(modelKey)
-                .update({ id: entryToBeUpdated.id }, globalEntry);
-            }
-
+          if (entryToBeUpdated) {
             return strapi
               .query(modelKey)
-              .create(globalEntry);
-          });
+              .update({ id: entryToBeUpdated.id }, globalEntry);
+          }
 
-          await Promise.all(deletePromises);
+          return strapi
+            .query(modelKey)
+            .create(globalEntry);
+        });
 
-          console.info('Generating entries in model ' + modelKey);
-          return Promise.all(promises);
+        await Promise.all(deletePromises);
+
+        console.info('Generating entries in model ' + modelKey);
+        return Promise.all(promises);
+      }
+
+      if (Object.keys(globalData).length > 0) {
+        const entryToBeUpdated = entries.length === 1 && entries[0];
+        if (entryToBeUpdated) {
+          console.info('Updating single ' + modelKey);
+          return strapi
+            .query(modelKey)
+            .update({ id: entryToBeUpdated.id }, globalData);
         }
+
+        console.info('Creating single ' + modelKey);
+
+        return strapi
+          .query(modelKey)
+          .create(globalData);
       }
 
       const modelUpdatesByLocales = locales.map(async locale => {
         const data = getData(modelKey, locale.slug);
-
-        if (data) {
+        
+        if (Object.keys(globalData).length > 0) {
           const entriesByLocale = entries.filter(({ locale: entryLocale }) => entryLocale.slug === locale.slug);
-
+          
           if (isArray(data)) {
             console.info('Generating global entries in model ' + modelKey + ' in locale ' + locale.slug);
 

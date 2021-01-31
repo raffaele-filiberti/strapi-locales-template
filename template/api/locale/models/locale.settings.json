@@ -17,6 +17,11 @@
     "slug": {
       "type": "string",
       "unique": true
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "general.seo"
     }
   }
 }
