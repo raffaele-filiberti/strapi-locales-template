@@ -2,15 +2,17 @@ const prompts = require('prompts');
 const path = require('path');
 const fs = require('fs');
 const csv = require('csvtojson');
+const set = require('lodash.set');
+const importFresh = require('import-fresh');
 
 const [firstArg] = process.argv.slice(2);
 
-const LOCALES = firstArg && firstArg.includes('locale="')
+const LOCALES = firstArg && firstArg.includes('locale=')
   ? firstArg
-    .replace('locale="')
-    .replace('"')
+    .replace('locale=', '')
+    .replace(/"|'/, '')
     .split(',')
-  : ['it', 'en'];
+  : [];
 
 function slugify(value, separator) {
   let text = value.toString().toLowerCase().trim();
@@ -82,7 +84,10 @@ const getHeaders = (name, dir) => {
   makeDirIfNotExist(dir);
 
   if (!fs.existsSync(`${dir}/${name}.json`)) {
-    fs.writeFileSync(`${dir}/${name}.json`, JSON.stringify([]));
+    fs.writeFileSync(
+      `${dir}/${name}.json`, 
+      JSON.stringify(['slug', 'name', ...LOCALES])
+    );
   }
 
   const headers = require(`${dir}/${name}.json`);
@@ -96,12 +101,12 @@ const saveByType = {
 
     makeDirIfNotExist(destDir);
 
-    const output = json.reduce(
-      (acc, { slug, value }) => ({
-        ...acc,
-        [slug]: value
-      }),
-      {}
+    const output = {};
+
+    json.forEach(
+      ({ slug, value }) => {
+        set(output, slug, value);
+      }
     );
 
     fs.writeFileSync(`${destDir}/${filename}.json`, JSON.stringify(output));
@@ -131,15 +136,37 @@ const saveByType = {
 
         makeDirIfNotExist(destDir);
 
-        const output = json.reduce(
-          (acc, { slug, ...field }) => ({
-            ...acc,
-            [slug]: field[locale]
-          }),
-          {}
+        let output = {};
+
+        json.forEach(
+          ({ slug, ...field }) => {
+            set(output, slug, field[locale]);
+          }
         );
 
-        fs.writeFileSync(`${destDir}/${filename}.json`, JSON.stringify(output));
+        if (filename.includes('.')) {
+          const [model, layout] = filename.split('.');
+
+          set(output, 'layout', layout);
+          if (fs.existsSync(`${destDir}/${model}.json`)) {
+            const input = importFresh(`${destDir}/${model}.json`);
+            const pageIndex = input.findIndex(({ slug }) => slug === output.slug);
+            if (pageIndex >= 0) {
+              fs.writeFileSync(`${destDir}/${model}.json`, JSON.stringify(
+                [...input.slice(0, pageIndex), output, ...input.slice(pageIndex + 1)]
+              ));
+            } else {
+              fs.writeFileSync(`${destDir}/${model}.json`, JSON.stringify(
+                [...input, output]
+              ));
+            }
+          } else {
+            fs.writeFileSync(`${destDir}/${model}.json`, JSON.stringify([output]));
+          }
+        }
+        else {
+          fs.writeFileSync(`${destDir}/${filename}.json`, JSON.stringify(output));
+        }
       }
     );
   },
@@ -154,10 +181,12 @@ const saveByType = {
           .reduce(
             (acc, record) => [
               ...acc,
-              record[locale] ? {
-                ...record[locale],
-                slug: slugify(record[locale].name || record[locale].title)
-              } : {}
+              record[locale]
+                && ((record[locale].name && record[locale].name.length > 0)
+                  || (record[locale].title && record[locale].title.length > 0)) ? {
+                  ...record[locale],
+                  slug: slugify(record[locale].name || record[locale].title)
+                } : null
             ],
             []
           )
@@ -177,8 +206,6 @@ const saveByType = {
   makeDirIfNotExist(jsonDir);
 
   const files = fs.readdirSync(csvDir).filter(name => name.includes('.csv'));
-
-  console.log(files);
 
   const filenames = files.map(name => name.replace('.csv', ''));
 
@@ -239,7 +266,6 @@ const saveByType = {
     instructions: false,
   });
 
-  console.log(response);
 
   response.file.forEach(({ type, filename, headers }) => {
     csv({ headers })

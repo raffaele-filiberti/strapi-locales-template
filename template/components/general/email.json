@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_general_emails",
+  "info": {
+    "name": "email",
+    "icon": "american-sign-language-interpreting"
+  },
+  "options": {},
+  "attributes": {
+    "email": {
+      "type": "email"
+    }
+  }
+}

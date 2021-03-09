@@ -1,0 +1,29 @@
+{
+  "kind": "singleType",
+  "collectionName": "configs",
+  "info": {
+    "name": "config",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "address": {
+      "type": "text"
+    },
+    "tel": {
+      "type": "string"
+    },
+    "googleMapsLink": {
+      "type": "string"
+    },
+    "sendTo": {
+      "type": "component",
+      "repeatable": true,
+      "component": "general.email"
+    }
+  }
+}

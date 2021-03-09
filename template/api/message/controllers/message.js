@@ -13,28 +13,35 @@ module.exports = {
     }
     entity = sanitizeEntity(entity, { model: strapi.models.message });
 
-    const user = await strapi.query('user', 'admin').find()
+    const [config] = await strapi.query('config').find();
+    const labels = await strapi.query('locale').find({ slug: entity.locale || 'en' });
 
-    const customerUsers = user.filter(
-      ({ roles }) => roles.find(
-        ({ name }) => name.toLowerCase().includes('customer')
-      ) !== undefined
+    const thankYouTemplate = require('./thankYouTemplate.js');
+    await strapi.plugins['email'].services.email.sendTemplatedEmail(
+      {
+        to: entity.email,
+      },
+      thankYouTemplate,
+      {
+        ...entity,
+        ...((labels && labels.template) || {}),
+        newMessageFrom: 'New Message from'
+      }
     );
-
-    if (customerUsers.length > 0) {
-      await strapi.plugins['email'].services.email.send({
-        to: customerUsers.map(user => user.email).join(', '),
-        from: 'admin@strapi.io',
-        subject: `Message from ${entity.name} ${entity.surname}`,
-        text: `
-        ID: #${entity.id}
-        Name: ${entity.name}
-        Surame: ${entity.surname}
-        Email: ${entity.email}
-        Comment:
-        ${entity.content}
-        `,
-      });
+      
+    if (config.sendTo.length > 0) {
+      const template = require('./newMessageTemplate.js');
+      await strapi.plugins['email'].services.email.sendTemplatedEmail(
+        {
+          to: config.sendTo.map(user => user.email).join(', '),
+        },
+        template,
+        {
+          ...entity,
+          ...((labels && labels.template) || {}),
+          newMessageFrom: 'New Message from'
+        }
+      );
     }
 
     return entity;

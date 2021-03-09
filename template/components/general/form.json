@@ -1,0 +1,50 @@
+{
+  "collectionName": "components_general_forms",
+  "info": {
+    "name": "form",
+    "icon": "apple-alt",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "request": {
+      "type": "string"
+    },
+    "submit": {
+      "type": "string"
+    },
+    "acceptPrivacy": {
+      "type": "text"
+    },
+    "required": {
+      "type": "string"
+    },
+    "invalidEmail": {
+      "type": "string"
+    },
+    "requiredFields": {
+      "type": "string"
+    },
+    "thankYou": {
+      "type": "string"
+    },
+    "somethingWentWrong": {
+      "type": "string"
+    },
+    "submitting": {
+      "type": "string"
+    }
+  }
+}

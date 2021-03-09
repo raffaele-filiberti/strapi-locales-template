@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_general_cookies",
+  "info": {
+    "name": "Cookie",
+    "icon": "allergies"
+  },
+  "options": {},
+  "attributes": {
+    "message": {
+      "type": "string"
+    },
+    "accept": {
+      "type": "string"
+    },
+    "decline": {
+      "type": "string"
+    }
+  }
+}
